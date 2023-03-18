@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:request_to_oktell/provider.dart';
 
 
-
+//Когда нас перебрасывает на второй экран, нас перебрасывает на второе поле ввода, в то же время значение переданное
+//в controller на первом экране (теперь называется phone), отправляется в 1с.
+//В свою очередь, 1с связывается с октеллом и вызывает звонок, получает от октелла код,
+//И присылает его обратно во флаттер. В somecode.
+//Дальше, когда нам поступает звонок, мы вводим 4 цифры в поле ввода. Теперь controller -- это введённый 4значный код.
+//И controller сравнивается с somecode.
+//Если цифры правильные, в консоль выводится Success!
+//Если нет, то Wrong.
+//Если поле ввода пустое, нам пишут Please enter code.
 
 // Create a Form widget.
 class SecondScreenForm extends StatefulWidget {
-  //const SecondScreenForm({super.key});
   final String phone;
 
   const SecondScreenForm({
@@ -23,13 +29,14 @@ class SecondScreenForm extends StatefulWidget {
 
 // Create a corresponding State class.
 // This class holds data related to the form.
+final _formKey = GlobalKey<FormState>();
 class SecondScreenFormState extends State<SecondScreenForm> {
 
-  final _formKey = GlobalKey<FormState>();
+//В somecode храним код из 4 цифр, который возвращает 1с.
   String? somecode;
 
   void initState() {
-    print("initState!");
+    print("initState!${widget.phone}");
     postPhone(widget.phone);
 
     super.initState();
@@ -37,6 +44,7 @@ class SecondScreenFormState extends State<SecondScreenForm> {
 
   void postPhone(String phone) async {
     print("postPhone1");
+    print(phone);
     MwProvider().loadPhone(phone: phone).then((value) {
       print("postPhone");
       somecode = value.somecode;
@@ -44,33 +52,22 @@ class SecondScreenFormState extends State<SecondScreenForm> {
     }, onError: (o) {
       SnackBar(content: Text(o.toString()));
     });
-
-
-    //super.postPhone(phone);
-    // void initState() {
-    //    phone = phone;
-    // }
-    // super.initState();
-
-    // Create a global key that uniquely identifies the Form widget
-    // and allows validation of the form.
-    //
-    // Note: This is a GlobalKey<FormState>,
-    // not a GlobalKey<MyCustomFormState>.
-
-
   }
+
   final TextEditingController _controller = TextEditingController();
-  TextFormField _usernameFormField() {
+  TextFormField _somecodeFormField() {
     return TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter code';
+          }
+          return null;
+        },
         controller: _controller,
         textAlignVertical: TextAlignVertical.center,
         textInputAction: TextInputAction.next,
-        // style: style,
-        // textCapitalization: TextCapitalization.words,
         decoration: const InputDecoration(
           labelText: "Code",
-          // prefixIcon: Icon(CustomIcons.profile),
         ));
   }
   @override
@@ -85,39 +82,18 @@ class SecondScreenFormState extends State<SecondScreenForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-
-                // The validator receives the text that the user has entered.
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter code';
-                  }
-                  return null;
-                },
-              ),
+              _somecodeFormField(),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: ElevatedButton(
                   onPressed: () {
-                    // Validate returns true if the form is valid, or false otherwise.
-                    if (_formKey.currentState!.validate()) {
-                      // If the form is valid, display a snackbar. In the real world,
-                      // you'd often call a server or save the information in a database.
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Processing Data')),
-                      );
-                    }
-                    if (_controller.text == somecode){
+                    if (_controller.text.toString() == somecode.toString()){
                       print("Success!");
                     }
-                    // else {
-                    //   return 'Please enter code';
-                    // }
+                     else {
+                       print("Wrong");
+                     }
 
-                    //_controller.text=''; // else{
-                    //
-                    // }
-                    //compare(_controller.text)
                   },
                   child: const Text('OK'),
                 ),

@@ -16,12 +16,6 @@ class SendUnit {
     );
   }
 
-  // Map<String, dynamic> toJson() {
-  //   final Map<String, dynamic> data = <String, dynamic>{};
-  //   data['somecode'] = somecode;
-  //   return data;
-  // }
-
 }
 class SendData {
   final List<SendUnit> list;

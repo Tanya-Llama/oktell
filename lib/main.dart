@@ -1,12 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:request_to_oktell/second_screen.dart';
 
-
+//Суть в чём. Первый экран на котором форма ввода. Водим туда номер телефона в формате 7**********. Без + и 8.
+//Нажимаем Ок. По нажатию вызывается second_screen.
+//Созанный нами controller передаёт введённый номер в second_screen.
+//Если поле ввода пустое, нам пишут Please enter phone.
+//Я ещё вывожу в консоль разные сообщения, чтобы отследить, что всё отработало.
 void main() {
-  HttpOverrides.global = MyHttpOverrides();
   runApp(const MyApp());
 }
 
@@ -39,26 +40,23 @@ class MyCustomForm extends StatefulWidget {
   }
 }
 
-// Create a corresponding State class.
-// This class holds data related to the form.
 class MyCustomFormState extends State<MyCustomForm> {
-  // Create a global key that uniquely identifies the Form widget
-  // and allows validation of the form.
-  //
-  // Note: This is a GlobalKey<FormState>,
-  // not a GlobalKey<MyCustomFormState>.
 
   final TextEditingController _controller = TextEditingController();
   TextFormField _usernameFormField() {
     return TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter phone';
+          }
+          return null;
+        },
         controller: _controller,
         textAlignVertical: TextAlignVertical.center,
         textInputAction: TextInputAction.next,
-        // style: style,
         textCapitalization: TextCapitalization.words,
         decoration: const InputDecoration(
           labelText: "Phone number",
-          // prefixIcon: Icon(CustomIcons.profile),
         ));
   }
 
@@ -72,16 +70,7 @@ class MyCustomFormState extends State<MyCustomForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextFormField(
-
-            // The validator receives the text that the user has entered.
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter phone';
-              }
-              return null;
-            },
-          ),
+          _usernameFormField(),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 16.0),
             child: ElevatedButton(
@@ -93,6 +82,7 @@ class MyCustomFormState extends State<MyCustomForm> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Processing Data')),
                   );
+                  print(_controller.text.toString());
                   Navigator.push(context,
                       MaterialPageRoute(builder: (context) => SecondScreenForm(phone: _controller.text)));
                 }
@@ -103,13 +93,5 @@ class MyCustomFormState extends State<MyCustomForm> {
         ],
       ),
     );
-  }
-}
-
-class MyHttpOverrides extends HttpOverrides{
-  @override
-  HttpClient createHttpClient(SecurityContext? context){
-    return super.createHttpClient(context)
-      ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
   }
 }
